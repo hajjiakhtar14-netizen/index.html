@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cricket World 3D</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#101820;
+  color:white;
+  text-align:center;
+}
+
+header{
+  background:#0b5d3b;
+  padding:18px;
+  font-size:25px;
+  font-weight:bold;
+}
+
+.screen{
+  max-width:600px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:#17232d;
+  border-radius:18px;
+  padding:20px;
+  margin-top:20px;
+  box-shadow:0 5px 20px #0008;
+}
+
+select,button{
+  width:100%;
+  padding:15px;
+  margin:8px 0;
+  border:0;
+  border-radius:12px;
+  font-size:17px;
+}
+
+button{
+  background:#18a558;
+  color:white;
+  font-weight:bold;
+}
+
+button:active{
+  transform:scale(.96);
+}
+
+.hidden{
+  display:none;
+}
+
+.score{
+  font-size:32px;
+  font-weight:bold;
+  margin:15px;
+}
+
+.pitch{
+  height:220px;
+  background:#16834a;
+  border-radius:50%;
+  position:relative;
+  margin:20px 0;
+  overflow:hidden;
+}
+
+.wicket{
+  position:absolute;
+  left:45%;
+  top:75px;
+  font-size:55px;
+}
+
+.ball{
+  font-size:45px;
+  margin:10px;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.small{
+  font-size:14px;
+  opacity:.8;
+}
+</style>
+</head>
+
+<body>
+
+<header>🏏 CRICKET WORLD 3D</header>
+
+<div class="screen">
+
+<!-- MENU -->
+<div id="menu" class="card">
+
+<h2>🌍 Select Teams</h2>
+
+<select id="team1">
+<option>Pakistan 🇵🇰</option>
+<option>India 🇮🇳</option>
+<option>Australia 🇦🇺</option>
+<option>England 🏴</option>
+<option>New Zealand 🇳🇿</option>
+<option>South Africa 🇿🇦</option>
+<option>Bangladesh 🇧🇩</option>
+<option>Sri Lanka 🇱🇰</option>
+<option>Afghanistan 🇦🇫</option>
+<option>West Indies 🌴</option>
+</select>
+
+<select id="team2">
+<option>India 🇮🇳</option>
+<option>Pakistan 🇵🇰</option>
+<option>Australia 🇦🇺</option>
+<option>England 🏴</option>
+<option>New Zealand 🇳🇿</option>
+<option>South Africa 🇿🇦</option>
+<option>Bangladesh 🇧🇩</option>
+<option>Sri Lanka 🇱🇰</option>
+<option>Afghanistan 🇦🇫</option>
+<option>West Indies 🌴</option>
+</select>
+
+<h2>🏆 Match Format</h2>
+
+<select id="format">
+<option value="20">T20</option>
+<option value="50">ODI</option>
+<option value="90">Test</option>
+</select>
+
+<h2>🏟️ Ground</h2>
+
+<select id="ground">
+<option>National Cricket Stadium</option>
+<option>Melbourne Cricket Ground</option>
+<option>Lord's Cricket Ground</option>
+<option>Eden Gardens</option>
+<option>Dubai International Stadium</option>
+<option>Gaddafi Stadium</option>
+</select>
+
+<button onclick="startGame()">▶ START MATCH</button>
+
+</div>
+
+
+<!-- GAME -->
+<div id="game" class="hidden">
+
+<div class="card">
+
+<h2 id="matchTitle"></h2>
+
+<div class="score">
+<span id="runs">0</span>/<span id="wickets">0</span>
+</div>
+
+<div>
+Overs: <span id="overs">0.0</span>
+/
+<span id="maxOvers">20</span>
+</div>
+
+<div class="pitch">
+<div class="wicket">🏏</div>
+</div>
+
+<div class="ball">⚾</div>
+
+<h3 id="message">Tap a shot to play</h3>
+
+<div class="actions">
+
+<button onclick="shot(0)">🛡️ DEFEND</button>
+<button onclick="shot(1)">🏃 SINGLE</button>
+
+<button onclick="shot(2)">🏃🏃 DOUBLE</button>
+<button onclick="shot(4)">4️⃣ FOUR</button>
+
+<button onclick="shot(6)">6️⃣ SIX</button>
+<button onclick="shot(-1)">🔥 ATTACK</button>
+
+</div>
+
+<button onclick="restart()">🔄 NEW MATCH</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+let runs=0;
+let wickets=0;
+let balls=0;
+let maxOvers=20;
+let battingTeam="";
+let bowlingTeam="";
+
+
+function startGame(){
+
+  battingTeam=document.getElementById("team1").value;
+  bowlingTeam=document.getElementById("team2").value;
+
+  maxOvers=parseInt(
+    document.getElementById("format").value
+  );
+
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  document.getElementById("matchTitle").innerText=
+    battingTeam+" 🆚 "+bowlingTeam;
+
+  document.getElementById("maxOvers").innerText=maxOvers;
+
+  updateScore();
+}
+
+
+function shot(type){
+
+  if(balls >= maxOvers*6 || wickets >= 10){
+    document.getElementById("message").innerText=
+      "🏁 Innings Finished!";
+    return;
+  }
+
+  balls++;
+
+  let result;
+
+  // Attack gives random result
+  if(type === -1){
+
+    let possibilities=[0,1,2,4,6,"W"];
+
+    result=
+      possibilities[
+        Math.floor(Math.random()*possibilities.length)
+      ];
+
+  }else{
+
+    let chance=Math.random();
+
+    if(chance < 0.08){
+      result="W";
+    }else{
+      result=type;
+    }
+  }
+
+
+  if(result==="W"){
+
+    wickets++;
+
+    document.getElementById("message").innerText=
+      "❌ OUT! Great bowling!";
+
+  }else{
+
+    runs+=result;
+
+    if(result===6){
+
+      document.getElementById("message").innerText=
+        "🔥 SIX! What a shot!";
+
+    }else if(result===4){
+
+      document.getElementById("message").innerText=
+        "🎉 FOUR! Beautiful boundary!";
+
+    }else if(result===0){
+
+      document.getElementById("message").innerText=
+        "🛡️ Dot ball";
+
+    }else{
+
+      document.getElementById("message").innerText=
+        "🏃 "+result+" run(s)";
+    }
+  }
+
+  updateScore();
+}
+
+
+function updateScore(){
+
+  let overNumber=
+    Math.floor(balls/6);
+
+  let ballNumber=
+    balls%6;
+
+  document.getElementById("runs").innerText=runs;
+  document.getElementById("wickets").innerText=wickets;
+
+  document.getElementById("overs").innerText=
+    overNumber+"."+ballNumber;
+
+  if(balls>=maxOvers*6 || wickets>=10){
+
+    document.getElementById("message").innerText=
+      "🏁 Innings Finished — Score: "+
+      runs+"/"+wickets;
+  }
+}
+
+
+function restart(){
+
+  runs=0;
+  wickets=0;
+  balls=0;
+
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+  document.getElementById("message").innerText=
+    "Tap a shot to play";
+}
+
+</script>
+
+</body>
+</html>
