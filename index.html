@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
+
+<title>Cricket World 3D</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial,sans-serif;
+    background:#07111f;
+    color:white;
+}
+
+#game{
+    width:100%;
+    height:100%;
+}
+
+.menu{
+    position:fixed;
+    inset:0;
+    z-index:10;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#07111f;
+}
+
+.menu-box{
+    width:92%;
+    max-width:550px;
+    padding:25px;
+    background:#142238;
+    border-radius:20px;
+    text-align:center;
+}
+
+h1{
+    font-size:36px;
+    margin:5px 0 10px;
+}
+
+p{
+    color:#b8c7da;
+}
+
+select{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    border-radius:10px;
+    border:1px solid #40516d;
+    background:#1b2c47;
+    color:white;
+    font-size:16px;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    margin-top:12px;
+    border:0;
+    border-radius:10px;
+    background:white;
+    color:#07111f;
+    font-size:17px;
+    font-weight:bold;
+}
+
+#score{
+    position:fixed;
+    top:15px;
+    left:15px;
+    z-index:5;
+    padding:12px 16px;
+    border-radius:12px;
+    background:rgba(0,0,0,.7);
+    font-weight:bold;
+}
+
+#message{
+    position:fixed;
+    top:75px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:5;
+    font-size:28px;
+    font-weight:bold;
+}
+
+#tap{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:5;
+    padding:10px 16px;
+    border-radius:10px;
+    background:rgba(0,0,0,.7);
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div id="score">
+0/0 • 0.0 overs
+</div>
+
+<div id="message"></div>
+
+<div id="tap">
+TAP SCREEN TO PLAY 🏏
+</div>
+
+<div class="menu" id="menu">
+
+<div class="menu-box">
+
+<h1>🏏 Cricket World 3D</h1>
+
+<p>
+Choose your match
+</p>
+
+<select id="format">
+
+<option value="T10">
+T10 — 10 Overs
+</option>
+
+<option value="T20" selected>
+T20 — 20 Overs
+</option>
+
+<option value="ODI">
+ODI — 50 Overs
+</option>
+
+<option value="TEST">
+Test Match
+</option>
+
+</select>
+
+<select id="team">
+
+<option>Pakistan</option>
+<option>India</option>
+<option>Australia</option>
+<option>England</option>
+<option>South Africa</option>
+<option>New Zealand</option>
+<option>Sri Lanka</option>
+<option>Bangladesh</option>
+<option>Afghanistan</option>
+<option>Ireland</option>
+<option>Zimbabwe</option>
+<option>West Indies</option>
+
+</select>
+
+<select id="opponent">
+
+<option>India</option>
+<option>Pakistan</option>
+<option>Australia</option>
+<option>England</option>
+<option>South Africa</option>
+<option>New Zealand</option>
+<option>Sri Lanka</option>
+<option>Bangladesh</option>
+<option>Afghanistan</option>
+<option>Ireland</option>
+<option>Zimbabwe</option>
+<option>West Indies</option>
+
+</select>
+
+<button onclick="startGame()">
+START MATCH 🏏
+</button>
+
+</div>
+
+</div>
+
+<!-- 3D ENGINE -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+/* =========================
+   GAME VARIABLES
+========================= */
+
+let scene;
+let camera;
+let renderer;
+
+let ball;
+let batsman;
+
+let score=0;
+let wickets=0;
+let balls=0;
+
+let playing=false;
+let ballMoving=false;
+
+let selectedTeam="";
+let selectedOpponent="";
+let selectedFormat="";
+
+/* =========================
+   START GAME
+========================= */
+
+function startGame(){
+
+    selectedTeam=
+        document.getElementById("team").value;
+
+    selectedOpponent=
+        document.getElementById("opponent").value;
+
+    selectedFormat=
+        document.getElementById("format").value;
+
+    document.getElementById("menu")
+        .style.display="none";
+
+    score=0;
+    wickets=0;
+    balls=0;
+
+    playing=true;
+
+    updateScore();
+
+    create3DWorld();
+
+    nextBall();
+}
+
+/* =========================
+   3D WORLD
+========================= */
+
+function create3DWorld(){
+
+    scene=new THREE.Scene();
+
+    scene.background=
+        new THREE.Color(0x87b9df);
+
+    camera=
+        new THREE.PerspectiveCamera(
+            55,
+            window.innerWidth/window.innerHeight,
+            .1,
+            1000
+        );
+
+    camera.position.set(
+        0,7,15
+    );
+
+    camera.lookAt(
+        0,1,0
+    );
+
+    renderer=
+        new THREE.WebGLRenderer({
+            antialias:true
+        });
+
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio,2)
+    );
+
+    document
+        .getElementById("game")
+        .appendChild(renderer.domElement);
+
+    /* LIGHT */
+
+    let light=
+        new THREE.HemisphereLight(
+            0xffffff,
+            0x405040,
+            2
+        );
+
+    scene.add(light);
+
+    let sun=
+        new THREE.DirectionalLight(
+            0xffffff,
+            2
+        );
+
+    sun.position.set(
+        8,15,10
+    );
+
+    scene.add(sun);
+
+    createGround();
+
+    createPlayers();
+
+    animate();
+}
+
+/* =========================
+   GROUND
+========================= */
+
+function createGround(){
+
+    let field=
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                18,
+                18,
+                .3,
+                64
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0x24733c
+            })
+
+        );
+
+    field.scale.z=.7;
+
+    field.position.y=-.2;
+
+    scene.add(field);
+
+
+    /* PITCH */
+
+    let pitch=
+        new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+                4,
+                .1,
+                20
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0xb79563
+            })
+
+        );
+
+    pitch.position.y=.02;
+
+    scene.add(pitch);
+
+
+    /* STADIUM LIGHT POLES */
+
+    for(
+        let i=0;
+        i<8;
+        i++
+    ){
+
+        let pole=
+            new THREE.Mesh(
+
+                new THREE.CylinderGeometry(
+                    .15,
+                    .15,
+                    7,
+                    12
+                ),
+
+                new THREE.MeshStandardMaterial({
+                    color:0xdddddd
+                })
+
+            );
+
+        let angle=
+            i*Math.PI/4;
+
+        pole.position.set(
+            Math.cos(angle)*15,
+            3.5,
+            Math.sin(angle)*11
+        );
+
+        scene.add(pole);
+
+    }
+
+}
+
+/* =========================
+   PLAYER
+========================= */
+
+function createPlayer(
+    x,
+    z,
+    color
+){
+
+    let group=
+        new THREE.Group();
+
+    /* BODY */
+
+    let body=
+        new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+                .45,
+                .6,
+                1.5,
+                16
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:color
+            })
+
+        );
+
+    body.position.y=1.2;
+
+    group.add(body);
+
+
+    /* HEAD */
+
+    let head=
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                .42,
+                16,
+                12
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0xd29b72
+            })
+
+        );
+
+    head.position.y=2.3;
+
+    group.add(head);
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+    scene.add(group);
+
+    return group;
+}
+
+/* =========================
+   PLAYERS
+========================= */
+
+function createPlayers(){
+
+    batsman=
+        createPlayer(
+            0,
+            7,
+            0x16834b
+        );
+
+    createPlayer(
+        0,
+        -7,
+        0x1769c2
+    );
+
+}
+
+/* =========================
+   BALL
+========================= */
+
+function createBall(){
+
+    ball=
+        new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                .18,
+                16,
+                12
+            ),
+
+            new THREE.MeshStandardMaterial({
+                color:0xc51f32
+            })
+
+        );
+
+    scene.add(ball);
+
+}
+
+/* =========================
+   NEXT BALL
+========================= */
+
+function nextBall(){
+
+    if(!playing)
+        return;
+
+    if(ballMoving)
+        return;
+
+    if(!ball)
+        createBall();
+
+    ballMoving=true;
+
+    ball.position.set(
+        (Math.random()-.5)*1.2,
+        1.2,
+        7
+    );
+
+    let start=
+        performance.now();
+
+    let duration=
+        900;
+
+    function move(){
+
+        let now=
+            performance.now();
+
+        let progress=
+            (now-start)/duration;
+
+        if(progress>1)
+            progress=1;
+
+        ball.position.z=
+            7+( -12 * progress );
+
+        ball.position.y=
+            1.2+
+            Math.sin(
+                progress*Math.PI
+            )*.8;
+
+        if(progress<1){
+
+            requestAnimationFrame(move);
+
+        }else{
+
+            ballMoving=false;
+
+        }
+
+    }
+
+    requestAnimationFrame(move);
+
+}
+
+/* =========================
+   TAP
+========================= */
+
+document.addEventListener(
+    "pointerdown",
+    function(){
+
+        if(
+            playing &&
+            ballMoving
+        ){
+
+            hitBall();
+
+        }
+
+    }
+);
+
+/* =========================
+   HIT BALL
+========================= */
+
+function hitBall(){
+
+    let random=
+        Math.random();
+
+    let result="";
+
+    if(random<.07){
+
+        wickets++;
+
+        result="WICKET! 😮";
+
+    }
+
+    else if(random<.20){
+
+        score+=6;
+
+        result="SIX! 🔥";
+
+    }
+
+    else if(random<.38){
+
+        score+=4;
+
+        result="FOUR! 🏏";
+
+    }
+
+    else if(random<.62){
+
+        score+=2;
+
+        result="2 RUNS";
+
+    }
+
+    else if(random<.90){
+
+        score+=1;
+
+        result="1 RUN";
+
+    }
+
+    else{
+
+        result="DOT BALL";
+
+    }
+
+    balls++;
+
+    document.getElementById(
+        "message"
+    ).textContent=result;
+
+    setTimeout(
+        function(){
+
+            document.getElementById(
+                "message"
+            ).textContent="";
+
+        },
+        700
+    );
+
+    updateScore();
+
+    if(
+        wickets>=10 ||
+        balls>=getBallLimit()
+    ){
+
+        playing=false;
+
+        document.getElementById(
+            "tap"
+        ).textContent=
+            "MATCH OVER";
+
+        return;
+
+    }
+
+    setTimeout(
+        nextBall,
+        300
+    );
+
+}
+
+/* =========================
+   FORMAT LIMIT
+========================= */
+
+function getBallLimit(){
+
+    if(
+        selectedFormat==="T10"
+    )
+        return 60;
+
+    if(
+        selectedFormat==="T20"
+    )
+        return 120;
+
+    if(
+        selectedFormat==="ODI"
+    )
+        return 300;
+
+    return 540;
+
+}
+
+/* =========================
+   SCORE
+========================= */
+
+function updateScore(){
+
+    document.getElementById(
+        "score"
+    ).textContent=
+
+        score+
+        "/"+
+        wickets+
+        " • "+
+        Math.floor(balls/6)+
+        "."+
+        (balls%6)+
+        " overs";
+
+}
+
+/* =========================
+   ANIMATION
+========================= */
+
+function animate(){
+
+    requestAnimationFrame(
+        animate
+    );
+
+    if(renderer){
+
+        renderer.render(
+            scene,
+            camera
+        );
+
+    }
+
+}
+
+/* =========================
+   RESIZE
+========================= */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        if(!camera || !renderer)
+            return;
+
+        camera.aspect=
+            window.innerWidth/
+            window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+    }
+);
+
+</script>
+
+</body>
+  </html>
