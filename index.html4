@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket World 3D</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="game">
+    <h1>🏏 Cricket World 3D</h1>
+
+    <div class="menu">
+      <h2>Select Teams</h2>
+
+      <select id="team1">
+        <option>Pakistan 🇵🇰</option>
+        <option>India 🇮🇳</option>
+        <option>Australia 🇦🇺</option>
+        <option>England 🏴</option>
+        <option>New Zealand 🇳🇿</option>
+        <option>South Africa 🇿🇦</option>
+        <option>Sri Lanka 🇱🇰</option>
+        <option>Bangladesh 🇧🇩</option>
+        <option>Afghanistan 🇦🇫</option>
+        <option>West Indies 🌴</option>
+      </select>
+
+      <select id="team2">
+        <option>India 🇮🇳</option>
+        <option>Pakistan 🇵🇰</option>
+        <option>Australia 🇦🇺</option>
+        <option>England 🏴</option>
+        <option>New Zealand 🇳🇿</option>
+        <option>South Africa 🇿🇦</option>
+        <option>Sri Lanka 🇱🇰</option>
+        <option>Bangladesh 🇧🇩</option>
+        <option>Afghanistan 🇦🇫</option>
+        <option>West Indies 🌴</option>
+      </select>
+
+      <select id="format">
+        <option>T20</option>
+        <option>ODI</option>
+        <option>Test</option>
+      </select>
+
+      <button onclick="startMatch()">START MATCH</button>
+    </div>
+
+    <div id="stadium">
+      <div class="score">
+        <h2 id="matchTitle">Pakistan vs India</h2>
+        <p id="score">0 / 0</p>
+        <p id="balls">Balls: 0</p>
+      </div>
+
+      <div class="pitch">
+        🏏
+      </div>
+
+      <div class="controls">
+        <button onclick="playShot(1)">DEFENCE</button>
+        <button onclick="playShot(2)">SINGLE</button>
+        <button onclick="playShot(4)">FOUR</button>
+        <button onclick="playShot(6)">SIX</button>
+      </div>
+
+      <p id="result"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
